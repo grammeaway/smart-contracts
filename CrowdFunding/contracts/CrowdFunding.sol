@@ -15,7 +15,7 @@ contract CrowdFunding {
     
     uint public deadline;  // deadline for this contract to be closed     
     
-    string public status; // "Funding", "Campagin Success", "Campagin Failed"     
+    string public status; // "Funding", "Campagin Success", "Campain Failed"     
     
     bool public isOver;  // the end of funding      
     
@@ -39,17 +39,16 @@ contract CrowdFunding {
         numbInvestors = 0;
         totalAmount = 0;
     }       
-
-    function getNow() public view returns (uint256) { 
-        return now;
-    }   
             
     // Function to be called when investing     
     function fund() public payable {  
     // 1. Check if this crowd funding ended or not  
     // 2. Set invest-related info and process funding
 
-        if(isOver) { return;}
+        if(isOver) { 
+            msg.sender.transfer(msg.value);
+            return;
+        }
 
         Investor memory investor;
         investor = Investor({addr: msg.sender, amount: msg.value}); 
@@ -59,10 +58,6 @@ contract CrowdFunding {
 
         checkGoalReached();
     }          
-
-    function getStatus() public view returns (string) { 
-        return status;
-    }
     
     function checkGoalReached () public {          
     // 1. Check if this crowd funding ended or not          
@@ -72,22 +67,25 @@ contract CrowdFunding {
         isOver = true;
     }         
 
+    uint totalAmountAsETH = totalAmount / 1000000000000000000; 
     // 3-1. If this crowd funding is successful, send funded ETH to owner  
-    if(totalAmount >= goalAmount) { 
+    if(totalAmountAsETH >= goalAmount) { 
         owner.transfer(totalAmount);
         status = "Campaign Succes";
         isOver = true;
     }
     // 3-2. If not, return fund-raising to each investor
-    else {
+    if(totalAmountAsETH < goalAmount && isOver) {
         for(numbInvestors; numbInvestors > 0; numbInvestors--) { 
             Investor memory investor;
             investor = investors[numbInvestors];
-            investor.addr.transfer(investor.amount);
+            address returnAddress = investor.addr;
+            uint amountToReturn = investor.amount;
+            returnAddress.transfer(amountToReturn);
         }
         status = "Campaign Failed";
         isOver = true;
-    }
+        }
       
     }          
     
@@ -97,6 +95,36 @@ contract CrowdFunding {
        if (owner == msg.sender) { // Only privillige of owner
           selfdestruct(owner); //destroy contract
        }
+    }
+
+
+    
+    function getNow() public view returns (uint256) { 
+        return now;
+    }   
+
+     function getIsOver() public view returns (bool) { 
+        return isOver;
+    } 
+
+     function getDeadline() public view returns (uint) { 
+        return deadline;
+    }   
+
+    function getTotalFunding() public view returns (uint) { 
+        return totalAmount; 
+    }
+
+
+    function getFundingFromInvestor(uint investorNum) public view returns(uint) { 
+        Investor memory investor;
+        investor = investors[investorNum];
+        return investor.amount;
+    }
+
+    
+    function getStatus() public view returns (string) { 
+        return status;
     }
 
 } 
