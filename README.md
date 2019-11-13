@@ -1,7 +1,7 @@
 # How to run 
 
 ## Environment
-These contracts have been compiled and tested using Truffle and Ganache, 
+These contracts are written in Solidity, and have been compiled and tested using Truffle and Ganache, 
 both part of the Truffle Suite https://github.com/trufflesuite.
 
 Ganache is used to easily set up a testing network. Ganache both comes as a CLI, or with a GUI. The truffle-config file should have it's network properties adjusted according to the Ganache network setup. They are currently set to the defaults of Ganache.
