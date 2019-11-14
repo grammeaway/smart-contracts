@@ -1,6 +1,7 @@
 pragma solidity ^0.4.25; 
  
 contract CrowdFunding {     
+    
     // Investor struct     
     struct Investor {         
         
@@ -15,22 +16,18 @@ contract CrowdFunding {
     
     uint public deadline;  // deadline for this contract to be closed     
     
-    string public status; // "Funding", "Campagin Success", "Campain Failed"     
+    string public status; // "Funding", "Campaign Success", "Campaign Failed"     
     
-    bool public isOver;  // the end of funding      
+    bool public isOver;  // has the campaign ended?    
     
     uint public goalAmount; // target amount     
     
     uint public totalAmount;  //total ammout     
     
-    mapping(uint => Investor) public investors;   
-     
-    
-    // 1. Create modifier to limit to owner          
-        
-    // Constructor     
-    constructor(uint _duration, uint _goalAmount) public {  
-        // Initialize owner, deadline, goalAmount, status, end, numbInvestors, totoalAmount     
+    mapping(uint => Investor) public investors; //Investor mapping  
+              
+            
+    constructor(uint _duration, uint _goalAmount) public {     
         owner = msg.sender;
         deadline = getNow() + _duration;
         goalAmount = _goalAmount;
@@ -42,9 +39,7 @@ contract CrowdFunding {
             
     // Function to be called when investing     
     function fund() public payable {  
-    // 1. Check if this crowd funding ended or not  
-    // 2. Set invest-related info and process funding
-
+        //If the campaign is over
         if(isOver) { 
             msg.sender.transfer(msg.value);
             return;
@@ -60,36 +55,39 @@ contract CrowdFunding {
     }          
     
     function checkGoalReached () public {          
-    // 1. Check if this crowd funding ended or not          
-    if(isOver) { return;} 
-    // 2. Check if the deadline is past or not  
-    if(getNow() > deadline) {
-        isOver = true;
-    }         
+        //Check if this crowd funding ended or not          
+        if(isOver) { return;} 
+        //Check if the deadline is past or not  
+        if(getNow() > deadline) {
+            isOver = true;
+        }         
 
-    uint totalAmountAsETH = totalAmount / 1000000000000000000; 
-    // 3-1. If this crowd funding is successful, send funded ETH to owner  
-    if(totalAmountAsETH >= goalAmount) { 
-        owner.transfer(totalAmount);
-        status = "Campaign Succes";
-        isOver = true;
-    }
-    // 3-2. If not, return fund-raising to each investor
-    if(totalAmountAsETH < goalAmount && isOver) {
-        for(numbInvestors; numbInvestors > 0; numbInvestors--) { 
-            Investor memory investor;
-            investor = investors[numbInvestors];
-            address returnAddress = investor.addr;
-            uint amountToReturn = investor.amount;
-            returnAddress.transfer(amountToReturn);
+        //Making the totalAmount comparable to the goalamount
+        uint totalAmountAsETH = totalAmount / 1000000000000000000; //WEI to ETH conversion
+        
+        //If this crowd funding is successful, send funded ETH to owner  
+        if(totalAmountAsETH >= goalAmount) { 
+            owner.transfer(totalAmount);
+            status = "Campaign Succes";
+            isOver = true;
         }
-        status = "Campaign Failed";
-        isOver = true;
+        
+        //If not, return fund-raising to each investor
+        if(totalAmountAsETH < goalAmount && isOver) {
+            for(numbInvestors; numbInvestors > 0; numbInvestors--) { 
+                Investor memory investor;
+                investor = investors[numbInvestors];
+                address returnAddress = investor.addr;
+                uint amountToReturn = investor.amount;
+                returnAddress.transfer(amountToReturn);
+            }
+            status = "Campaign Failed";
+            isOver = true;
         }
-      
+        
     }          
     
-    // 1. Create function to destroy this contract 
+    // Function to destroy this contract 
     // inspired by https://ethereumdev.io/ethereum-smart-contracts-lifecycle/
     function kill() public {
        if (owner == msg.sender) { // Only privillige of owner
@@ -98,7 +96,17 @@ contract CrowdFunding {
     }
 
 
-    
+    //Get the amount funded by a specific investor address
+    function getFundingFromInvestor(address investorAddr) public view returns(uint) { 
+        uint amountInvested = 0; //If investor addr is not present in mapping, the given addr funded 0
+        for(uint i = 1; i <= numbInvestors; i++) { 
+            if(investors[i].addr == investorAddr) { 
+                amountInvested = investors[i].amount;
+            }
+        }
+        return amountInvested;
+    }
+
     function getNow() public view returns (uint256) { 
         return now;
     }   
@@ -114,14 +122,6 @@ contract CrowdFunding {
     function getTotalFunding() public view returns (uint) { 
         return totalAmount; 
     }
-
-
-    function getFundingFromInvestor(uint investorNum) public view returns(uint) { 
-        Investor memory investor;
-        investor = investors[investorNum];
-        return investor.amount;
-    }
-
     
     function getStatus() public view returns (string) { 
         return status;
