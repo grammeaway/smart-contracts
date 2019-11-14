@@ -5,33 +5,33 @@ contract Auction {
     uint public highestBid; // The amount of the highest bid
     mapping(address => uint) public userBalances;  // mapping for the amount to return 
  
-    constructor() public {  
-        // contractor  
-        // 1. Initialize highest bid and the bidder's address
+    constructor() public {    
+        //Highest bid and highest bidder set to initializing address
         highestBid = 0;
         highestBidder = msg.sender;     
     } 
  
-    function bid() public payable {  
-        // Funtion to process bid  
-        // 1. Check if the bid is greater than the current highest bid  
-        // 2. Update status variable and the amount to return 
+    // Funtion to process bid 
+    function bid() public payable {           
+        //Check if the bid is greater than the current highest bid  
         if(msg.value > highestBid) { 
-            withdraw();
+            
+            //Return the former highest bids funds
+            withdraw(); 
+
+            //Update status variables 
             highestBid = msg.value;
             highestBidder = msg.sender;
-    
-            }    
+        }    
     }     
         
+    // Fundtion to return the bid of a previous highest bid.
     function withdraw() public {         
-        // Fundtion to withdraw the amount of bid to return  
-        // 1. Check if the amount to return is greater than zero  
-        // 2. Update status variablle and return bid 
+        // Check if the amount to return is greater than zero  
         if(highestBid > 0) { 
+            //Return bid 
             highestBidder.transfer(highestBid);
         }
-
     } 
 
     function getHighestBid() public constant returns(uint) { 
