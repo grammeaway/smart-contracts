@@ -28,7 +28,7 @@ truffle console --network development
 
 
 ## Disclaimer
-These were developed as part of a simple university project. Using these on an actual Ethereum network, transfering real ETH or daya, is completely your own responsibility. 
+These were developed as part of a simple university project. Using these on an actual Ethereum network, transfering real ETH or data, is completely your own responsibility. 
 If something doesn't work as expected, and you lose actual data or Etheruem of value, I can not be held accountable.
 
 
